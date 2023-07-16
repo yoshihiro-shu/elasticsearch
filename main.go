@@ -1,29 +1,39 @@
 package main
 
 import (
-	"log"
+	"github.com/gookit/slog"
+	"github.com/gookit/slog/handler"
 
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
 func main() {
+	logger := NewLogger()
+
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			"http://elasticsearch.draft.com",
 		},
 	}
-
 	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
-		log.Fatalf("failed at set es client. err is %s", err.Error())
+		logger.Error("failed at set es client. err is %s", err.Error())
 		return
 	}
 	res, err := es.Ping()
 	if err != nil {
-		log.Fatalf("failed at es ping. err is %s", err.Error())
+		logger.Error("failed at es ping. err is %s", err.Error())
 		return
 	}
 	defer res.Body.Close()
-	log.Printf("res is %s", res.String())
-	log.Printf("status is %s", res.Status())
+	logger.Infof("res is %s", res.String())
+	logger.Infof("status is %s", res.Status())
+}
+
+func NewLogger() *slog.Logger {
+	logger := slog.New()
+	logger.SetName("BACK-END")
+	setLevelHandler := handler.NewConsoleHandler(slog.AllLevels)
+	logger.AddHandler(setLevelHandler)
+	return logger
 }
